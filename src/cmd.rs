@@ -126,7 +126,8 @@ pub enum Command {
     Version,
     Kill,
     Help,
-    Restart
+    Restart,
+    Cheat
 }
 
 impl FromStr for Command {
@@ -143,6 +144,7 @@ impl FromStr for Command {
             "version" => Ok(Command::Version),
             "help" => Ok(Command::Help),
             "restart" => Ok(Command::Restart),
+            "cheat" => Ok(Command::Cheat),
             _ => Err(ParseError::VariantNotFound)
         }
     }
@@ -215,6 +217,10 @@ fn handle(cmd: &Command) {
             handle(&Command::Show);
         	println!("Restarting game...");
         	unsafe { &STATS.reset() };
+        },
+        Command::Cheat => {
+        	println!("Cheat! Cheat! Cheat!");
+        	unsafe { &STATS.add_wins(10) };
         }
     }
 }

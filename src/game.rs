@@ -23,6 +23,11 @@ impl Stats {
         Stats { total: 0, won: 0, lost: 0 }
     }
 
+    pub fn add_wins(&mut self, i: u32) {
+    	self.total.add_assign(i);
+    	self.won.add_assign(i);
+    }
+
     /// Accepts a `Guess` instance to derive the result
     ///  of the guess and adjust the `Stats` under the
     ///  pointer accordingly.
