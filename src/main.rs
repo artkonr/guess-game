@@ -20,7 +20,7 @@ fn main() {
 
     // loop until the user terminates the program or program panics
     loop {
-        println!("--------\nAwaiting input...");
+        println!("--------");
         // take user input and try to resolve it to a numeric value
         let inp = CONSOLE.take_input();
         match inp.get_numeric() {

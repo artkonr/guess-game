@@ -124,7 +124,8 @@ pub enum Command {
     Hi,
     Author,
     Version,
-    Kill
+    Kill,
+    Help
 }
 
 impl FromStr for Command {
@@ -139,6 +140,7 @@ impl FromStr for Command {
             "hi" => Ok(Command::Hi),
             "author" => Ok(Command::Author),
             "version" => Ok(Command::Version),
+            "help" => Ok(Command::Help),
             _ => Err(ParseError::VariantNotFound)
         }
     }
@@ -205,6 +207,15 @@ fn handle(cmd: &Command) {
         Command::Kill => {
             println!("Quitting...");
             exit(0);
-        }
+        },
+        Command::Help => println!("Available commands:\n{}", get_command_list())
     }
+}
+
+fn get_command_list() -> String {
+	let mut ls = String::new();
+	for item in Command::VARIANTS.iter() {
+		ls.push_str(format!(" -> {}\n", item).as_str())
+	}
+	ls
 }
