@@ -1,65 +1,49 @@
-use std::io;
-use rand::Rng;
-use std::cmp::Ordering;
-use std::ops::AddAssign;
+mod cmd;
+mod game;
+
+extern crate strum;
+extern crate strum_macros;
+use crate::cmd::{Console, Command};
+use crate::game::{Stats, get_numeric_input};
+
+/// Static mutable game stats. Gets unsafely modified in the program.
+static mut STATS: Stats = Stats::new();
+/// Shared `Console` instance.
+static CONSOLE: Console = Console;
 
 fn main() {
-    println!("Hi! Let's play a game!");
+    println!("Hi! Let's play a game!\nDefine the max number you'd like to guess:");
 
-    let mut games_total: u32 = 0;
-    let mut games_won: u32 = 0;
-    let mut games_lost: u32 = 0;
+    // define upper bound to guess against
+    let bound = get_numeric_input(&CONSOLE);
+    println!("Game will produce random numbers belonging to [1; {})", &bound);
 
+    // loop until the user terminates the program or program panics
     loop {
-        println!("Awaiting input...");
-        let expectation = rand::thread_rng()
-            .gen_range(1, 10);
+        println!("--------\nAwaiting input...");
+        // take user input and try to resolve it to a numeric value
+        let inp = CONSOLE.take_input();
+        match inp.get_numeric() {
+            // if the input can be resolved to numeric value,
+            // make sure it is strictly positive and modify statistics
+            Some(numinp) => {
+                if !numinp.is_pos() {
+                    println!("Guess should be a positive number, yours is {}", numinp.get_val());
+                    continue;
+                }
 
-        let mut input_buffer = String::new();
+                unsafe {
+                    STATS.consume_guess(numinp.derive_guess(&bound))
+                }
 
-        io::stdin()
-            .read_line(&mut input_buffer)
-            .expect("Failed to obtain user input from stdin");
-
-        if input_buffer.trim().eq_ignore_ascii_case("quit") {
-            let win_ratio: f32 = (games_won as f32) / (games_total as f32) * 100f32;
-            let win_lose_ratio: f32 = if games_lost == 0 { 100f32 }
-                else { (games_won as f32) / (games_lost as f32) * 100f32 };
-            println!("Quitting...");
-            println!("Your stats are:\n\
-                -> games played: {}\n\
-                -> games won: {}\n\
-                -> win ratio: {}%\n\
-                -> win-lose-ratio: {}%", games_total, games_won, win_ratio, win_lose_ratio);
-            break;
-        }
-
-        let converted: u32 = match input_buffer.trim().parse() {
-            Ok(num) => num,
-            Err(_) => {
-                println!("Input {} is not an int, try again", input_buffer.trim());
-                continue;
-            }
-        };
-
-        match converted.cmp(&expectation) {
-            Ordering::Less => {
-                println!("A bit too low: yours {}, expected {}", converted, expectation);
-                games_total.add_assign(1);
-                games_lost.add_assign(1);
             },
-            Ordering::Equal => {
-                println!("Whoa! Who's the lucky mack?!");
-                games_total.add_assign(1);
-                games_won.add_assign(1);
-            },
-            Ordering::Greater => {
-                println!("Now this went too far: yours {}, expected {}", converted, expectation);
-                games_total.add_assign(1);
-                games_lost.add_assign(1);
+            // if the input is not a number, try to resolve a command
+            None => {
+                if let Err(_) = Command::handle_command(inp.get_val().as_str()) {
+                    continue
+                }
             }
         }
-
     }
 
 }
