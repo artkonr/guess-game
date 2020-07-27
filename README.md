@@ -15,5 +15,7 @@ The game also supports other commands, such as:
 * ``show`` -- prints the statistics of the running game
 * ``quit`` -- prints the statistics of the running game and then quits
 * ``version`` -- prints the version of the game
-  
+* ``restart`` -- prints the statistics of a running game and then flushes them
+* ``help`` -- prints the list of available commands
+ 
 Have fun!

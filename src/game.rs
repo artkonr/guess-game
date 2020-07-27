@@ -30,6 +30,13 @@ impl Stats {
         self.compare_and_augment(guess.get_val(), guess.get_expectation())
     }
 
+	/// Resets all fields in a `Stats` instance to 0.
+    pub fn reset(&mut self) {
+    	self.total = 0;
+    	self.won = 0;
+    	self.lost = 0;
+    }
+
     /// Compares 2 integer values to alter the game statistics
     ///     depending on the result of the comparison drawn.
     ///
