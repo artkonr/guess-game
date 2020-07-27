@@ -165,7 +165,7 @@ impl Command {
             None => {
                 println!("Command {} not recognized. Available commands: {}",
                          if str.is_empty() { "<empty>" } else { str },
-                         Command::VARIANTS.join(','));
+                         Command::VARIANTS.join(","));
                 Err(ParseError::VariantNotFound)
             }
         }
