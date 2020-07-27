@@ -17,5 +17,6 @@ The game also supports other commands, such as:
 * ``version`` -- prints the version of the game
 * ``restart`` -- prints the statistics of a running game and then flushes them
 * ``help`` -- prints the list of available commands
+* ``cheat`` -- effortlessly adds 10 played and won games to your stats
  
 Have fun!
