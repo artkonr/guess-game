@@ -1,10 +1,11 @@
 use std::io;
-use crate::game::{Guess};
+use crate::game::{Guess, STATS_PATH_STRING};
 use std::process::exit;
 use strum::{VariantNames, ParseError};
 use strum_macros::EnumVariantNames;
-use crate::STATS;
+use crate::{STATS};
 use std::str::FromStr;
+use crate::files::Exporter;
 
 /// Convenience structure which takes wraps `stdin` calls in
 ///  a friendly manner and returns wrapper structures.
@@ -17,28 +18,10 @@ impl Console {
     ///
     /// Returns the value wrapped in the `StringInput`.
     pub fn take_input(&self) -> StringInput {
-        StringInput::new(self.get_data_from_stdin())
-    }
-
-    /// Takes user input from `stdin` and assumes that the input
-    ///  _**may**_ be resolved to a numeric value.
-    ///
-    /// Wraps the result first into `NumInput` which is consecutively
-    ///  returned as `Option`.
-    pub fn take_num_input(&self) -> Option<NumInput> {
-        match self.get_data_from_stdin().parse() {
-            Ok(num) => Option::Some(NumInput::new(num)),
-            Err(_) => Option::None
-        }
-    }
-
-    /// Wraps simple `stdin` call and returns the resulting
-    ///  input as `String`.
-    fn get_data_from_stdin(&self) -> String {
         let mut buf = String::new();
         io::stdin().read_line(&mut buf)
             .expect("Failed to obtain input");
-        String::from(buf.trim())
+        StringInput::new(String::from(buf.trim()))
     }
 
 }
@@ -99,7 +82,7 @@ impl StringInput {
     ///  be resolved or not.
     pub fn get_numeric(&self) -> Option<NumInput> {
         match self.get_val().parse() {
-            Ok(num) => Option::Some(NumInput{ val: num }),
+            Ok(num) => Option::Some(NumInput::new(num)),
             Err(_) => Option::None
         }
     }
@@ -108,16 +91,7 @@ impl StringInput {
 
 /// An enum which contains all the commands the game
 ///  accepts in the console as straightforward user input.
-///
-/// Currently, the following commands are supported:
-/// * `author` :: prints the contact information of the author of the game
-/// * `hi` :: greets the player
-/// * `kill` :: terminates the game at once
-/// * `show` :: prints the statistics of the running game
-/// * `quit` :: prints the statistics of the running game and then quits
-/// * `version` :: prints the version of the game
 #[derive(EnumVariantNames)]
-#[strum(serialize_all="kebab_case")]
 pub enum Command {
     Quit,
     Show,
@@ -127,7 +101,9 @@ pub enum Command {
     Kill,
     Help,
     Restart,
-    Cheat
+    Cheat,
+    Save,
+    Json,
 }
 
 impl FromStr for Command {
@@ -145,6 +121,8 @@ impl FromStr for Command {
             "help" => Ok(Command::Help),
             "restart" => Ok(Command::Restart),
             "cheat" => Ok(Command::Cheat),
+            "save" => Ok(Command::Save),
+            "json" => Ok(Command::Json),
             _ => Err(ParseError::VariantNotFound)
         }
     }
@@ -176,6 +154,7 @@ impl Command {
             }
         }
     }
+
 }
 
 /// Attempts to find a `Command` associated with
@@ -221,14 +200,30 @@ fn handle(cmd: &Command) {
         Command::Cheat => {
         	println!("Cheat! Cheat! Cheat!");
         	unsafe { &STATS.add_wins(10) };
-        }
+        },
+        Command::Save => {
+            println!("Saving statistics to file...");
+            match unsafe { &STATS.serialize() } {
+                Ok(ser) => {
+                    match Exporter::new(STATS_PATH_STRING).export(ser) {
+                        Ok(_) => println!("Statistics were saved to {}", STATS_PATH_STRING),
+                        Err(err) => println!("Failed to save statistics: {}", err)
+                    }
+                }
+                Err(err) => println!("Failed to serialize stats data: {}", err)
+            }
+        },
+        Command::Json =>
+            println!("Your intermediate stats are:\n{}",
+                     unsafe { &STATS.serialize().unwrap() })
     }
 }
 
+/// Returns a nicely formatted list of available commands.
 fn get_command_list() -> String {
 	let mut ls = String::new();
 	for item in Command::VARIANTS.iter() {
-		ls.push_str(format!(" -> {}\n", item).as_str())
+		ls.push_str(format!(" -> {}\n", item.to_ascii_lowercase()).as_str())
 	}
 	ls
 }

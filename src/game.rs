@@ -2,13 +2,15 @@ use std::ops::AddAssign;
 use std::fmt::{Display, Formatter};
 use std::cmp::{Ordering};
 use rand::Rng;
-use crate::cmd::Console;
+use serde::Serialize;
+use serde::Deserialize;
 
 /// Trivial struct which holds data about the running game:
 /// basically, has 3 fields:
 /// * `total` :: number of games played
 /// * `won` :: number of games won
 /// * `lost` :: number of games lost
+#[derive(Serialize,Deserialize)]
 pub struct Stats {
     total: u32,
     won: u32,
@@ -23,6 +25,8 @@ impl Stats {
         Stats { total: 0, won: 0, lost: 0 }
     }
 
+    /// Mutates a `Stats` instance to add `i` games,
+    ///  played and won.
     pub fn add_wins(&mut self, i: u32) {
     	self.total.add_assign(i);
     	self.won.add_assign(i);
@@ -40,6 +44,12 @@ impl Stats {
     	self.total = 0;
     	self.won = 0;
     	self.lost = 0;
+    }
+
+    /// Serializes a `Stats` instance to JSON and returns
+    ///  in a `Result` container.
+    pub fn serialize(&self) -> serde_json::Result<String> {
+        serde_json::to_string(self)
     }
 
     /// Compares 2 integer values to alter the game statistics
@@ -205,26 +215,6 @@ impl Guess {
 
 }
 
-/// A convenience function which loops while taking user
-///  input from `Console`. The loop breaks with the result
-///  when the user provides a non-negative `u32` value.
-pub fn get_numeric_input(console: &Console) -> u32 {
-    let mut input = console.take_num_input();
-    loop {
-        match &input {
-            Some(unwrap) => {
-                if !unwrap.is_pos() {
-                    println!("Only numeric values > 1 are permitted, yours is {}", unwrap.get_val());
-                    input = console.take_num_input();
-                    continue;
-                }
-                break *unwrap.get_val() as u32;
-            }
-            None => {
-                println!("Your input cannot be resolved to numeric value");
-                input = console.take_num_input();
-                continue;
-            }
-        }
-    }
-}
+/// Name of the file any `Stats` object will be exported to
+pub static STATS_PATH_STRING: &str = "stats.json";
+
