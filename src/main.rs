@@ -1,10 +1,11 @@
+mod files;
 mod cmd;
 mod game;
 
 extern crate strum;
 extern crate strum_macros;
 use crate::cmd::{Console, Command};
-use crate::game::{Stats, get_numeric_input};
+use crate::game::{Stats};
 
 /// Static mutable game stats. Gets unsafely modified in the program.
 static mut STATS: Stats = Stats::new();
@@ -12,15 +13,14 @@ static mut STATS: Stats = Stats::new();
 static CONSOLE: Console = Console;
 
 fn main() {
-    println!("Hi! Let's play a game!\nDefine the max number you'd like to guess:");
+    println!("Hi! Let's play a game!");
 
     // define upper bound to guess against
-    let bound = get_numeric_input(&CONSOLE);
-    println!("Game will produce random numbers belonging to [1; {})", &bound);
+    let bound = 10;
 
     // loop until the user terminates the program or program panics
     loop {
-        println!("--------\nAwaiting input...");
+        println!("--------");
         // take user input and try to resolve it to a numeric value
         let inp = CONSOLE.take_input();
         match inp.get_numeric() {
