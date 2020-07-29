@@ -1,11 +1,11 @@
 use std::io;
-use crate::game::{Guess, STATS_PATH_STRING};
+use crate::game::{Guess, STATS_PATH_STRING, Stats};
 use std::process::exit;
 use strum::{VariantNames, ParseError};
 use strum_macros::EnumVariantNames;
 use crate::{STATS};
 use std::str::FromStr;
-use crate::files::Exporter;
+use crate::files::Io;
 
 /// Convenience structure which takes wraps `stdin` calls in
 ///  a friendly manner and returns wrapper structures.
@@ -104,6 +104,7 @@ pub enum Command {
     Cheat,
     Save,
     Json,
+    Load
 }
 
 impl FromStr for Command {
@@ -123,6 +124,7 @@ impl FromStr for Command {
             "cheat" => Ok(Command::Cheat),
             "save" => Ok(Command::Save),
             "json" => Ok(Command::Json),
+            "load" => Ok(Command::Load),
             _ => Err(ParseError::VariantNotFound)
         }
     }
@@ -130,7 +132,6 @@ impl FromStr for Command {
 }
 
 impl Command {
-
     /// Static resolver method. Takes a string slice, attempts
     ///  to find a `Command` associated with this slice value
     ///  and tries to execute it.
@@ -141,12 +142,12 @@ impl Command {
     /// If a `Command` cannot be resolved, returns error and
     ///  notifies the user in the console.
     pub fn handle_command(str: &str) -> Result<&str, ParseError> {
-        match find(str) {
-            Some(cmd) => {
-                handle(&cmd);
+        match Command::from_str(str) {
+            Ok(cmd) => {
+                &cmd.execute();
                 Ok(str)
             }
-            None => {
+            Err(_) => {
                 println!("Command {} not recognized. Available commands: {}",
                          if str.is_empty() { "<empty>" } else { str },
                          Command::VARIANTS.join(","));
@@ -155,75 +156,89 @@ impl Command {
         }
     }
 
-}
-
-/// Attempts to find a `Command` associated with
-///  the name equal to the supplied string slice.
-///  Wraps the result in `Option`.
-fn find(str: &str) -> Option<Command> {
-    match Command::from_str(str) {
-        Ok(cmd) => Some(cmd),
-        Err(_) => None
-    }
-}
-
-/// Exhaustively assigns a functional action to every `Command`.
-fn handle(cmd: &Command) {
-    match cmd {
-        Command::Quit => {
-            println!("Quitting...");
-            println!("Your final stats are:\n{}", unsafe { &STATS });
-            exit(0)
-        },
-        Command::Show => {
-            println!("Your intermediate stats are:\n{}", unsafe { &STATS })
+    /// Returns a nicely formatted list of available commands.
+    fn pretty_print_command_list() -> String {
+        let mut ls = String::new();
+        for item in Command::VARIANTS.iter() {
+            ls.push_str(format!(" -> {}\n", item.to_ascii_lowercase()).as_str())
         }
-        Command::Hi => {
-            println!("Hi, {}!", whoami::realname())
-        },
-        Command::Author => {
-            println!("Author artkonr (https://github.com/artkonr) says hi!")
-        },
-        Command::Version => {
-            println!("Current version: {}", env!("CARGO_PKG_VERSION"))
-        },
-        Command::Kill => {
-            println!("Quitting...");
-            exit(0);
-        },
-        Command::Help => println!("Available commands:\n{}", get_command_list()),
-        Command::Restart => {
-            handle(&Command::Show);
-        	println!("Restarting game...");
-        	unsafe { &STATS.reset() };
-        },
-        Command::Cheat => {
-        	println!("Cheat! Cheat! Cheat!");
-        	unsafe { &STATS.add_wins(10) };
-        },
-        Command::Save => {
-            println!("Saving statistics to file...");
-            match unsafe { &STATS.serialize() } {
-                Ok(ser) => {
-                    match Exporter::new(STATS_PATH_STRING).export(ser) {
-                        Ok(_) => println!("Statistics were saved to {}", STATS_PATH_STRING),
-                        Err(err) => println!("Failed to save statistics: {}", err)
-                    }
-                }
-                Err(err) => println!("Failed to serialize stats data: {}", err)
-            }
-        },
-        Command::Json =>
-            println!("Your intermediate stats are:\n{}",
-                     unsafe { &STATS.serialize().unwrap() })
+        ls
     }
-}
 
-/// Returns a nicely formatted list of available commands.
-fn get_command_list() -> String {
-	let mut ls = String::new();
-	for item in Command::VARIANTS.iter() {
-		ls.push_str(format!(" -> {}\n", item.to_ascii_lowercase()).as_str())
-	}
-	ls
+    /// Exhaustively assigns a functional action to every `Command`.
+    fn execute(&self) {
+        match self {
+
+            Command::Quit => {
+                println!("Quitting...");
+                println!("Your final stats are:\n{}", unsafe { &STATS });
+                exit(0)
+            },
+
+            Command::Show => println!("Your intermediate stats are:\n{}", unsafe { &STATS }),
+
+            Command::Hi => println!("Hi, {}!", whoami::realname()),
+
+            Command::Author => println!("Author artkonr (https://github.com/artkonr) says hi!"),
+
+            Command::Version => println!("Current version: {}", env!("CARGO_PKG_VERSION")),
+
+            Command::Kill => {
+                println!("Quitting...");
+                exit(0);
+            },
+
+            Command::Help => println!("Available commands:\n{}",
+                                      Command::pretty_print_command_list()),
+
+            Command::Restart => {
+                Command::Show.execute();
+                println!("Restarting game...");
+                unsafe { &STATS.reset() };
+            },
+
+            Command::Cheat => {
+                println!("Cheat! Cheat! Cheat!");
+                unsafe { &STATS.add_wins(10) };
+            },
+
+            Command::Save => {
+                println!("Saving statistics to file...");
+                match unsafe { &STATS.serialize() } {
+                    Ok(ser) => {
+                        match Io::new(STATS_PATH_STRING).export(ser) {
+                            Ok(_) => println!("Statistics were saved to {}", STATS_PATH_STRING),
+                            Err(err) => println!("Failed to save statistics: {}", err)
+                        }
+                    }
+                    Err(err) => println!("Failed to serialize stats data: {}", err)
+                }
+            },
+
+            Command::Json =>
+                println!("Your intermediate stats are:\n{}",
+                         unsafe { &STATS.serialize().unwrap() }),
+
+            Command::Load => {
+                println!("Loading saved game stats...");
+                match Io::new(STATS_PATH_STRING).import() {
+                    Ok(data) => {
+                        match Stats::deserialize(&data) {
+                            Ok(stats) => {
+                                unsafe {
+                                    STATS = stats;
+                                    println!("Stats loaded:\n{}", &STATS);
+                                }
+                            }
+                            Err(err) =>
+                                println!("Failed to deserialize stats data from data {}: {}",
+                                         data, err)
+                        }
+                    },
+                    Err(err) => println!("Failed to load saved stats: {}", err)
+                }
+            }
+
+        }
+    }
 }

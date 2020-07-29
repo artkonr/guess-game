@@ -1,3 +1,4 @@
+mod test;
 mod files;
 mod cmd;
 mod game;

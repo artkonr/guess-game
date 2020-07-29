@@ -52,6 +52,10 @@ impl Stats {
         serde_json::to_string(self)
     }
 
+    pub fn deserialize(str: &String) -> serde_json::Result<Stats> {
+        serde_json::from_str(str)
+    }
+
     /// Compares 2 integer values to alter the game statistics
     ///     depending on the result of the comparison drawn.
     ///
