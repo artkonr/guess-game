@@ -20,5 +20,6 @@ The game also supports other commands, such as:
 * ``cheat`` -- effortlessly adds 10 played and won games to your stats
 * ``save`` -- creates a file called ``stats.json`` in the root dir and writes current game stats in it as JSON
 * ``json`` -- serializes the current stats into JSON and prints them in the console
+* ``load`` -- load previously stored statistics from ``stats.json``
  
 Have fun!
