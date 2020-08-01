@@ -7,15 +7,28 @@ on:
 env:
   CARGO_TERM_COLOR: always
 jobs:
+  build-dry-run:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - run: cargo build --verbose
+  test:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - run: cargo test
   build:
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v2
-    - name: Ensure-Prerequisites
-      run: cargo version
-    - name: Build-Dry-Run
-      run: cargo build --verbose
-    - name: Test
-      run: cargo test
-    - name: Build
-      run: cargo build --verbose --release
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+    - run: cargo build --release --all-features
+  
