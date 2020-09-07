@@ -14,11 +14,15 @@ jobs:
     - run: cargo build
   test:
     runs-on: self-hosted
+    needs:
+    - build-dry-run
     steps:
     - uses: actions/checkout@v2
     - run: cargo test
   build:
     runs-on: self-hosted
+    needs:
+    - test
     steps:
     - uses: actions/checkout@v2
     - run: cargo build --release
