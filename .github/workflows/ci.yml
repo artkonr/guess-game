@@ -1,4 +1,4 @@
-name: Rusе
+name: Rust
 on:
   push:
     branches: [ master ]
@@ -7,8 +7,15 @@ on:
 env:
   CARGO_TERM_COLOR: always
 jobs:
+  check-env:
+    runs-on: self-hosted
+    name: check-env
+    steps:
+    - run: echo cargo --version
   build-dry-run:
     runs-on: self-hosted
+    needs:
+    - check-env
     steps:
     - uses: actions/checkout@v2
     - run: cargo build
