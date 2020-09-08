@@ -31,20 +31,6 @@ jobs:
       name: run-unit-tests
     - run: cargo build --release
       name: build-optimized
-  get-tag:
-    runs-on: self-hosted
-    needs:
-    - build
-    steps:
-    - name: get-latest-tag
-      run: |
-        mkdir gdir
-        chmod u=rwx gdir
-        cd gdir
-        git clone $GITHUB_SERVER_URL/$GITHUB_REPOSITORY .
-        LATEST_TAG=$(git tag -l --points-at $(git log -n 1 --tags --pretty=%h))
-        echo "Latest tag $LATEST_TAG"
-        echo ::set-env name=LATEST_TAG::$LATEST_TAG
   publish-docker-image:
     runs-on: self-hosted
     needs:
