@@ -36,24 +36,21 @@ jobs:
     - build
     env:
       DOCKER_REPOSITORY: artkonr/guess-game
+    steps:
+    - name: build-image
+      run: |
+        echo ::set-env name=IMAGE_REF::$DOCKER_REPOSITORY:$GITHUB_RUN_ID
+        docker build -q -t $IMAGE_REF
+  publish-image:
+    runs-on: self-hosted
+    needs:
+    - build-image
+    env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-    - name: get-git-tag
-      run: |
-        TAG=$(git tag -l --points-at $(git log -n 1 --tags --pretty=%h))
-        echo "Latest tag -> $TAG"
-        echo ::set-env name=GIT_TAG::$(git tag -l --points-at $(git log -n 1 --tags --pretty=%h))
-    - name: create-image-tag
-      run: echo $GIT_TAG | echo ::set-env name=IMAGE_TAG::release-$GIT_TAG
-    - name: build-and-publish
-      run: |
-        echo $IMAGE_TAG
-        docker build -q -t $DOCKER_REPOSITORY:$IMAGE_TAG .
-        docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
-        docker push $DOCKER_REPOSITORY:$IMAGE_TAG
-      #publish-image:
-  #  runs-on: self-hosted
+    - name: publish-image
+      run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD | docker push $IMAGE_REF
   #  needs:
   #  - build
   #  steps:
