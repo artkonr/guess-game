@@ -35,6 +35,7 @@ jobs:
     needs:
     - build
     env:
+      TAG: latest-tag
       DOCKER_REPOSITORY: artkonr/guess-game
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
