@@ -39,6 +39,8 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
+    - name: extract-git-tag
+      run: echo "::set-env name=GIT_TAG::$(git tag -l --points-at $(git log -n 1 --pretty=%h))"
     - name: build-and-publish
       run: |
         echo Building image...
