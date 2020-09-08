@@ -22,4 +22,4 @@ The game also supports other commands, such as:
 * ``json`` -- serializes the current stats into JSON and prints them in the console
 * ``load`` -- load previously stored statistics from ``stats.json``
  
-Have fun, folks!
+Have fun!
