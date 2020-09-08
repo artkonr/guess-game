@@ -34,7 +34,7 @@ jobs:
   build-image:
     runs-on: self-hosted
     needs:
-    - create-image-tag
+    - build
     env:
       DOCKER_REPOSITORY: artkonr/guess-game
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
