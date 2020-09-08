@@ -40,7 +40,10 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
     - name: get-git-tag
-      run: echo ::set-env name=GIT_TAG::$(git tag -l --points-at $(git log -n 1 --tags --pretty=%h))
+      run: |
+        TAG=$(git tag -l --points-at $(git log -n 1 --tags --pretty=%h))
+        echo "Latest tag -> $TAG"
+        echo ::set-env name=GIT_TAG::$(git tag -l --points-at $(git log -n 1 --tags --pretty=%h))
     - name: create-image-tag
       run: echo $GIT_TAG | echo ::set-env name=IMAGE_TAG::release-$GIT_TAG
     - name: build-and-publish
