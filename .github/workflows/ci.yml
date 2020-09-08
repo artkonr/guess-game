@@ -35,16 +35,14 @@ jobs:
     needs:
     - build
     env:
-      TAG: latest-tag
+      IMAGE_TAG: latest-tag
       DOCKER_REPOSITORY: artkonr/guess-game
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-    - run: export TAG=$(git tag -l --points-at $(git log -n 1 --pretty=%h)) | echo "Latest git tag $TAG"
-      name: get-latest-git-tag
-    - run: export IMAGE_TAG="release-$TAG" | echo "Docker image will be tagged with $IMAGE_TAG"
+    - run: export IMAGE_TAG="release-$(git tag -l --points-at $(git log -n 1 --pretty=%h))"
       name: create-image-tag
-    - run: export IMAGE_ID=$(docker build -q -t $DOCKER_REPOSITORY:$IMAGE_TAG .)
+    - run: docker build -q -t $DOCKER_REPOSITORY:$IMAGE_TAG .
       name: build-image
     - run: docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD | docker push $DOCKER_REPOSITORY:$IMAGE_TAG
       name: publish-image
