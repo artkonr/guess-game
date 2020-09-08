@@ -39,7 +39,7 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
     steps:
     - name: build-image
-      run: docker build -q -t $DOCKER_USERNAME/$DOCKER_REPOSITORY:$GITHUB_RUN_NUMBER
+      run: docker build -q -t $DOCKER_USERNAME/$DOCKER_REPOSITORY:$GITHUB_RUN_NUMBER .
   publish-image:
     runs-on: self-hosted
     needs:
