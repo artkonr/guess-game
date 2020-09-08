@@ -41,7 +41,7 @@ jobs:
     steps:
     - name: build-and-publish
       run: |
-        docker build -q -t $DOCKER_REPOSITORY:"release-$(git tag -l --points-at $(git log -n 1 --pretty=%h))"
+        docker build -q -t $DOCKER_REPOSITORY:"release-$(git tag -l --points-at $(git log -n 1 --pretty=%h))" .
 
         docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
 
