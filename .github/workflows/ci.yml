@@ -42,10 +42,10 @@ jobs:
     - name: build-and-publish
       run: |
         echo Building image...
-        git tag -l --points-at $(git log -n 1 --pretty=%h) > GIT_TAG
+        echo "::set-env name=GIT_TAG::$(git tag -l --points-at $(git log -n 1 --pretty=%h))"
         echo "Latest git tag $GIT_TAG"
 
-        echo "release-$GIT_TAG" > IMAGE_TAG
+        echo "::set-env name=IMAGE_TAG::"release-$GIT_TAG""
         echo "Docker image will be tagged with $IMAGE_TAG"
 
         docker build -q -t $DOCKER_REPOSITORY:$IMAGE_TAG
