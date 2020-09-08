@@ -53,7 +53,7 @@ jobs:
 
         # clean up
         cd ..
-        rm gdir
+        rm -r gdir
     - name: build-image
       run: docker build -q -t $DOCKER_USERNAME/$DOCKER_REPOSITORY:release-$LATEST_TAG .
     - name: publish-image
