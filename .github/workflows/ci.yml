@@ -31,6 +31,18 @@ jobs:
       name: run-unit-tests
     - run: cargo build --release
       name: build-optimized
+  get-tag:
+    runs-on: self-hosted
+    needs:
+    - build
+    steps:
+    - name: get-latest-tag
+      run: |
+        mkdir gdir | cd gdir
+        git clone $GITHUB_SERVER_URL/$GITHUB_REPOSITORY .
+        LATEST_TAG=$(git tag -l --points-at $(git log -n 1 --tags --pretty=%h))
+        echo "Latest tag $LATEST_TAG"
+        echo ::set-env name=LATEST_TAG::$LATEST_TAG
   build-image:
     runs-on: self-hosted
     needs:
@@ -39,7 +51,7 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
     steps:
     - name: build-image
-      run: docker build -q -t $DOCKER_USERNAME/$DOCKER_REPOSITORY:$GITHUB_RUN_NUMBER .
+      run: docker build -q -t $DOCKER_USERNAME/$DOCKER_REPOSITORY:release-$LATEST_TAG .
   publish-image:
     runs-on: self-hosted
     needs:
@@ -51,7 +63,7 @@ jobs:
     - name: publish-image
       run: |
         docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-        docker push $DOCKER_USERNAME/$DOCKER_REPOSITORY:$GITHUB_RUN_NUMBER
+        docker push $DOCKER_USERNAME/$DOCKER_REPOSITORY:release-$LATEST_TAG
   #  needs:
   #  - build
   #  steps:
