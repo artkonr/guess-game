@@ -40,6 +40,8 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
+    - run: touch tag.txt | git tag -l --points-at $(git log -n 1 --pretty=%h) > tag.txt | cat tag.txt
+      name: get-latest-git-tag
     - run: touch tag.txt | git tag -l --points-at $(git log -n 1 --pretty=%h) > tag.txt | echo "release-$(cat tag.txt)" > tag.txt
       name: create-image-tag
       id: b1
