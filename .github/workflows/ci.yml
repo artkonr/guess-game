@@ -31,7 +31,31 @@ jobs:
     - test
     steps:
     - run: cargo build --release
-  #publish-image:
+  create-image-tag:
+    runs-on: self-hosted
+    needs:
+    - build
+    steps:
+    - run: touch tag.txt | git tag -l --points-at $(git log -n 1 --pretty=%h) > tag.txt | echo "release-$(cat tag.txt) > tag.txt
+  build-image:
+    runs-on: self-hosted
+    needs:
+    - create-image-tag
+    env:
+      DOCKER_REPOSITORY: artkonr/guess-game
+    steps:
+    - run: IMAGEID=$(docker build -q -t $DOCKER_REPOSITORY:$(cat tag.txt) .)
+  publish-image:
+    runs-on: self-hosted
+    env:
+      DOCKER_REPOSITORY: artkonr/guess-game
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    needs:
+    - build-image
+    steps:
+    - run: docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD | docker push $DOCKER_REPOSITORY:$(cat tag.txt)
+    #publish-image:
   #  runs-on: self-hosted
   #  needs:
   #  - build
