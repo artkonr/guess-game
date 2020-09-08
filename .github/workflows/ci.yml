@@ -35,26 +35,18 @@ jobs:
     needs:
     - build
     env:
+      GIT_TAG: ${{ git tag -l --points-at $(git log -n 1 --pretty=%h) }}
       DOCKER_REPOSITORY: artkonr/guess-game
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-    - name: extract-git-tag
-      id: extract-git-tag
-      run: git tag -l --points-at $(git log -n 1 --pretty=%h)
     - name: build-and-publish
       run: |
-        echo Building image...
-        echo ${{steps.extract-git-tag.outputs.GIT_TAG}}
-
-        echo "::set-env name=IMAGE_TAG::"release-$GIT_TAG""
-        echo "Docker image will be tagged with $IMAGE_TAG"
-
-        docker build -q -t $DOCKER_REPOSITORY:$IMAGE_TAG
+        docker build -q -t $DOCKER_REPOSITORY:"release-$GIT_TAG"
 
         docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
 
-        docker push $DOCKER_REPOSITORY:$IMAGE_TAG
+        docker push $DOCKER_REPOSITORY:"release-$GIT_TAG"
       #publish-image:
   #  runs-on: self-hosted
   #  needs:
