@@ -40,12 +40,12 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
     - name: extract-git-tag
-      run: echo "::set-env name=GIT_TAG::$(git tag -l --points-at $(git log -n 1 --pretty=%h))"
+      id: extract-git-tag
+      run: echo "::set-output name=GIT_TAG::$(git tag -l --points-at $(git log -n 1 --pretty=%h))"
     - name: build-and-publish
       run: |
         echo Building image...
-        echo "::set-env name=GIT_TAG::$(git tag -l --points-at $(git log -n 1 --pretty=%h))"
-        echo "Latest git tag $GIT_TAG"
+        echo ${{steps.extract-git-tag.outputs.GIT_TAG}}
 
         echo "::set-env name=IMAGE_TAG::"release-$GIT_TAG""
         echo "Docker image will be tagged with $IMAGE_TAG"
