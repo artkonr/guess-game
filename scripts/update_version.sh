@@ -18,4 +18,7 @@ curl "$SCRIPT_PATH" > update_script.sh
 chmod +x ./update_script.sh
 ./update_script.sh
 
+git push --tags
+git push
+
 rm update_script.sh
