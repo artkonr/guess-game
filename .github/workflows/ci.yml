@@ -6,6 +6,7 @@ on:
     branches: [ master ]
 env:
   CARGO_TERM_COLOR: always
+  DOCKER_REPOSITORY: guess-game
 jobs:
   check-env:
     runs-on: self-hosted
@@ -35,12 +36,10 @@ jobs:
     needs:
     - build
     env:
-      DOCKER_REPOSITORY: artkonr/guess-game
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
     steps:
     - name: build-image
-      run: |
-        echo ::set-env name=IMAGE_REF::$DOCKER_REPOSITORY:$GITHUB_RUN_ID
-        docker build -q -t $IMAGE_REF
+      run: docker build -q -t $DOCKER_USERNAME/$DOCKER_REPOSITORY:$GITHUB_RUN_NUMBER
   publish-image:
     runs-on: self-hosted
     needs:
@@ -50,7 +49,9 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
     - name: publish-image
-      run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD | docker push $IMAGE_REF
+      run: |
+        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        docker push $DOCKER_USERNAME/$DOCKER_REPOSITORY:$GITHUB_RUN_NUMBER
   #  needs:
   #  - build
   #  steps:
