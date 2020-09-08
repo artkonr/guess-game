@@ -38,7 +38,9 @@ jobs:
     steps:
     - name: get-latest-tag
       run: |
-        mkdir gdir | cd gdir
+        mkdir gdir
+        chmod u=rwx gdir
+        cd gdir
         git clone $GITHUB_SERVER_URL/$GITHUB_REPOSITORY .
         LATEST_TAG=$(git tag -l --points-at $(git log -n 1 --tags --pretty=%h))
         echo "Latest tag $LATEST_TAG"
