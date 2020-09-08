@@ -36,7 +36,7 @@ jobs:
     needs:
     - build
     steps:
-    - run: touch tag.txt | git tag -l --points-at $(git log -n 1 --pretty=%h) > tag.txt | echo "release-$(cat tag.txt) > tag.txt
+    - run: touch tag.txt | git tag -l --points-at $(git log -n 1 --pretty=%h) > tag.txt | echo "release-$(cat tag.txt)" > tag.txt
   build-image:
     runs-on: self-hosted
     needs:
